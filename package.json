@@ -7,7 +7,6 @@
     "test": "test"
   },
   "scripts": {
-    "build": "rm .git -Force -Recurse; tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
