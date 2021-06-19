@@ -1,0 +1,24 @@
+{
+  "name": "discord-backup",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "rm .git -Force -Recurse; tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/ws": "^7.4.5",
+    "discord.js": "^13.0.0-dev.807ea2d3c197c7c6556bd1c894114932f6657d49",
+    "mongoose": "^5.12.14"
+  },
+  "devDependencies": {
+    "@discordjs/voice": "^0.5.0",
+    "@types/node": "^15.12.4"
+  }
+}
