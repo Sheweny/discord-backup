@@ -27,4 +27,21 @@ const backup = new DiscordBackup(client);
 ```js
 const {DiscordBackup} = require('discord-backup');
 
+const {Client, Intents} = require('discord.js');
+
+const client = new Client({intents:Intents.NON_PRIVILEGED});
+
+client.on('message', async msg => {
+  const args = msg.content.split(' ');
+  const commandName = args.shift();
+  if(commandName === 'create-backup') {
+    const guild = message.guild;
+    backup.create(guild).then(()=>message.reply('OK'))
+  } 
+  if(commandName === 'load-backup') {
+    backup.load(args[0]) 
+  } 
+})
+
+client.login('token')
 ```
