@@ -1,5 +1,6 @@
 {
-  "name": "@smaug-dev/discord-backup",
+  "name": "@smaug-6739/discord-backup",
+  "private":false,
   "version": "1.0.0",
   "description": "Module for create backups of server discord and load this backups",
   "main": "dist/index.js",
@@ -11,6 +12,9 @@
     "build:typing": "tsc  --build tsconfig.typing.json"
   },
   "author": "Smaug6739",
+  "engines": {
+    "node": ">=16.6.0"
+  },
   "license": "MIT",
   "dependencies": {
     "discord.js": "^13.0.1",
