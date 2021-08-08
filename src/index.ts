@@ -21,12 +21,10 @@ export class DiscordBackup {
 		// if (existsSync(join(__dirname, this.directory)))
 	}
 	create(guild: Guild) {
-		create(guild)
+		return create(guild)
 	}
 	load(guild: Guild, options: IOptionsLoad) {
-		console.log(options);
-
-		load(guild, options.id)
+		return load(guild, options.id)
 	}
 	initDB() {
 		mongoose.connect(this.database!.url, { useNewUrlParser: true, useUnifiedTopology: true });

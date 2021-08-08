@@ -2,9 +2,9 @@
 	"version": "2.4.2",
 	"compilerOptions": {
 		"lib": [
-			"es6"
+			"ES2021"
 		],
-		"target": "ES2020",
+		"target": "ES2021",
 		"module": "commonjs",
 		"noEmitOnError": true,
 		"strict": true,
@@ -17,6 +17,7 @@
 		"removeComments": false,
 		"noImplicitAny": true,
 		"esModuleInterop": true,
+		"skipLibCheck": true
 	},
 	"exclude": [
 		"node_modules"

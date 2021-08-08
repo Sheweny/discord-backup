@@ -5,13 +5,15 @@ import { wait } from '../util/wait';
 
 export async function load(guild: Guild, backupId: string) {
 	const guildDB = await GuildDB.findOne({ backupID: backupId })
+
 	if (!guildDB) throw new Error('Could not find guild backup ' + backupId);
-	// await prepar(guild)
-	// await loadRoles(guild, guildDB)
-	// await loadCategories(guild, guildDB)
-	// await loadChannels(guild, guildDB)
+	await prepar(guild)
+	await loadRoles(guild, guildDB)
+	await loadCategories(guild, guildDB)
+	await loadChannels(guild, guildDB)
 	await loadEmojis(guild, guildDB)
-	// await loadBans(guild, guildDB)
+	await loadBans(guild, guildDB)
+	return true
 }
 
 
@@ -21,7 +23,7 @@ async function prepar(guild: Guild): Promise<void> {
 	// Delete all
 
 	//Roles
-	for (const role of g.roles.cache.array()) {
+	for (const role of g.roles.cache.values()) {
 		try {
 			if (role.id !== role.guild.id && role.editable) {
 				if (g.me!.roles.highest.comparePositionTo(role) <= 0) continue;
@@ -32,9 +34,9 @@ async function prepar(guild: Guild): Promise<void> {
 		}
 	};
 	// Channels 
-	for (const channel of g.channels.cache.array()) {
+	for (const channel of g.channels.cache.values()) {
 		try {
-			if (channel.deletable) {
+			if (!channel.isThread() && channel.deletable) {
 				await channel.delete();
 				await wait(100);
 			}
@@ -42,7 +44,7 @@ async function prepar(guild: Guild): Promise<void> {
 		}
 	};
 	// Emojis
-	for (const emoji of g.emojis.cache.array()) {
+	for (const emoji of g.emojis.cache.values()) {
 		try {
 			if (emoji.deletable) {
 				await emoji.delete();
@@ -63,7 +65,7 @@ async function loadCategories(guild: Guild, backup: IBackup) {
 		})
 
 		await guild.channels.create(cat.name, {
-			type: 'category',
+			type: 'GUILD_CATEGORY',
 			position: cat.rawPosition,
 			permissionOverwrites: cat.permissionOverwrites
 		})
@@ -71,7 +73,7 @@ async function loadCategories(guild: Guild, backup: IBackup) {
 }
 async function loadChannels(guild: Guild, backup: IBackup) {
 	for (const ch of backup.gChannels) {
-		const parent: any = guild.channels.cache.filter(c => c.type === 'category' && c.name === ch.parent).first()
+		const parent: any = guild.channels.cache.filter(c => c.type === 'GUILD_CATEGORY' && c.name === ch.parent).first()
 		await wait(100)
 		ch.permissionOverwrites.forEach((p: IObject) => {
 			p.allow = BigInt(p.allow)

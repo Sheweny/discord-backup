@@ -8,9 +8,11 @@ export async function create(guild: Guild) {
 	const channels = await fetchChannels(guild)
 	const emojis = await fetchEmojis(guild)
 	const roles = await fetchRoles(guild)
+
+	const backupId = SnowflakeUtil.generate(Date.now())
 	const merged = Object.assign({
 		_id: Types.ObjectId(),
-		backupID: SnowflakeUtil.generate(Date.now()),
+		backupID: backupId,
 		gName: guild.name,
 		gID: guild.id,
 		gDescription: guild.description,
@@ -23,6 +25,7 @@ export async function create(guild: Guild) {
 	});
 	const createGuild = new GuildDB(merged);
 	await createGuild.save();
+	return backupId;
 }
 
 async function fetchBans(guild: Guild) {
@@ -37,10 +40,10 @@ async function fetchBans(guild: Guild) {
 async function fetchCategories(guild: Guild) {
 	const categories: any[] = [];
 	const channelsFetch = await guild.channels.fetch()
-	const categoriesFilter = channelsFetch.filter(c => c.type === 'category')
+	const categoriesFilter = channelsFetch.filter(c => c.type === 'GUILD_CATEGORY')
 	for (const [_, cat] of categoriesFilter) {
 		const permissions: any[] = []
-		for (const [_, p] of cat.permissionOverwrites) {
+		for (const p of cat.permissionOverwrites.cache.values()) {
 			permissions.push({
 				id: p.id,
 				type: p.type,
@@ -60,10 +63,10 @@ async function fetchCategories(guild: Guild) {
 async function fetchChannels(guild: Guild) {
 	const channels: any[] = [];
 	const channelsFetch = await guild.channels.fetch()
-	const channelsFilter: any = channelsFetch.filter(c => c.type !== 'category')
+	const channelsFilter: any = channelsFetch.filter(c => c.type !== 'GUILD_CATEGORY')
 	for (const [_, cha] of channelsFilter) {
 		const permissions: any[] = []
-		for (const [_, p] of cha.permissionOverwrites) {
+		for (const p of cha.permissionOverwrites.cache.values()) {
 			permissions.push({
 				id: p.id,
 				type: p.type,
