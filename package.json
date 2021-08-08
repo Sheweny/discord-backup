@@ -1,7 +1,7 @@
 {
   "name": "@smaug-6739/discord-backup",
   "private":false,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Module for create backups of server discord and load this backups",
   "main": "dist/index.js",
   "directories": {

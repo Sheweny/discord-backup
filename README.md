@@ -16,13 +16,13 @@ This module work with discord.js V13
 With npm :
 
 ```sh-session
-npm install @smaug-dev/discord-backup
+npm install @smaug-6739/discord-backup
 ```
 
 With yarn :
 
 ```sh-session
-yarn add @smaug-dev/discord-backup
+yarn add @smaug-6739/discord-backup
 ```
 
 ## Usage
@@ -32,13 +32,13 @@ Import the module from node_modules :
 With CommonJS syntax :
 
 ```js
-const { DiscordBackup } = require("@smaug-dev/discord-backup");
+const { DiscordBackup } = require("@smaug-6739/discord-backup");
 ```
 
 With module syntax :
 
 ```js
-import { DiscordBackup } = from "@smaug-dev/discord-backup";
+import { DiscordBackup } = from "@smaug-6739/discord-backup";
 ```
 
 Create a new instance of `DiscordBackup` with the client as a parameter and the database in options :
@@ -72,7 +72,29 @@ Parameters :
 
 Return : Promise\<boolean>.
 
----
+## Example
+
+```js
+const { Client, Intents } = require("discord.js");
+const { DiscordBackup } = require("@smaug-6739/discord-backup");
+const client = new Client({ intents: ["GUILDS", "GUILD_MESSAGES"] });
+const backup = new DiscordBackup(client, {
+  database: "mongodb://localhost:27017/discord-backup",
+});
+client.on("messageCreate", async (msg) => {
+  const args = msg.content.split(" ");
+  if (args[0] === "!create-backup") {
+    console.log(await backup.create(msg.guild));
+  }
+  if (args[0] === "!load-backup") {
+    backup.load(msg.guild, {
+      id: args[1],
+      force: true,
+    });
+  }
+});
+client.login("<discord bot token>");
+```
 
 ## Authors
 
