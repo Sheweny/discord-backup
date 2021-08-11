@@ -16,13 +16,13 @@ This module work with discord.js V13
 With npm :
 
 ```sh-session
-npm install @smaug-6739/discord-backup
+npm install @discord-util/backup
 ```
 
 With yarn :
 
 ```sh-session
-yarn add @smaug-6739/discord-backup
+yarn add @discord-util/backup
 ```
 
 ## Usage
@@ -32,13 +32,13 @@ Import the module from node_modules :
 With CommonJS syntax :
 
 ```js
-const { DiscordBackup } = require("@smaug-6739/discord-backup");
+const { DiscordBackup } = require("@discord-util/backup");
 ```
 
 With module syntax :
 
 ```js
-import { DiscordBackup } = from "@smaug-6739/discord-backup";
+import { DiscordBackup } = from "@discord-util/backup";
 ```
 
 Create a new instance of `DiscordBackup` with the client as a parameter and the database in options :
@@ -76,7 +76,7 @@ Return : Promise\<boolean>.
 
 ```js
 const { Client, Intents } = require("discord.js");
-const { DiscordBackup } = require("@smaug-6739/discord-backup");
+const { DiscordBackup } = require("@discord-util/backup");
 const client = new Client({ intents: ["GUILDS", "GUILD_MESSAGES"] });
 const backup = new DiscordBackup(client, {
   database: "mongodb://localhost:27017/discord-backup",
