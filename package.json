@@ -1,6 +1,6 @@
 {
   "name": "@sheweny/backup",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Module for create backups of server discord and load this backups",
   "main": "dist/index.js",
   "types": "./typing/index.d.ts",
