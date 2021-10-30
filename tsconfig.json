@@ -1,25 +1,20 @@
 {
-	"version": "2.4.2",
-	"compilerOptions": {
-		"lib": [
-			"ES2021"
-		],
-		"target": "ES2021",
-		"module": "commonjs",
-		"noEmitOnError": true,
-		"strict": true,
-		"moduleResolution": "node",
-		"emitDecoratorMetadata": true,
-		"experimentalDecorators": true,
-		"sourceMap": false,
-		"outDir": "./dist",
-		"rootDir": "./src",
-		"removeComments": false,
-		"noImplicitAny": true,
-		"esModuleInterop": true,
-		"skipLibCheck": true
-	},
-	"exclude": [
-		"node_modules"
-	]
+  "compilerOptions": {
+    "lib": ["ES2021"],
+    "target": "ES2021",
+    "module": "commonjs",
+    "noEmitOnError": true,
+    "strict": true,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "sourceMap": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "removeComments": false,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "exclude": ["node_modules"]
 }

@@ -11,7 +11,7 @@ export async function create(guild: Guild) {
 
   const backupId = SnowflakeUtil.generate(Date.now());
   const merged = Object.assign({
-    _id: Types.ObjectId(),
+    _id: new Types.ObjectId(),
     backupID: backupId,
     gName: guild.name,
     gID: guild.id,

@@ -1,6 +1,6 @@
 {
-  "name": "@discord-util/backup",
-  "version": "1.0.3",
+  "name": "@sheweny/backup",
+  "version": "1.0.4",
   "description": "Module for create backups of server discord and load this backups",
   "main": "dist/index.js",
   "types": "./typing/index.d.ts",
@@ -20,12 +20,10 @@
     "node": ">=16.6.0"
   },
   "license": "MIT",
-  "dependencies": {
-    "discord.js": "^13.0.1",
-    "mongoose": "^5.12.14"
-  },
   "devDependencies": {
     "@discordjs/voice": "^0.5.0",
-    "@types/node": "^15.12.4"
+    "@types/node": "^15.12.4",
+    "discord.js": "^13.3.0",
+    "mongoose": "^6.0.12"
   }
 }

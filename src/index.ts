@@ -1,32 +1,30 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 import type { Client, Guild } from "discord.js";
-import type { IOptions, IObject, IOptionsLoad } from './typescript/interfaces';
-import { create, load } from './functions/index';
-// import { existsSync } from 'fs';
-// import { join } from 'path';
+import type { IOptions, IObject, IOptionsLoad } from "./typescript/interfaces";
+import { create, load } from "./functions/index";
 export class DiscordBackup {
-	client: Client;
-	// directory: string;
-	database: IObject | undefined;
-	constructor(client: Client, options: IOptions) {
-		this.client = client;
-		// // this.directory = options?.directory ?? 'backups';
-		if (options?.database) {
-			this.database = {
-				url: options?.database
-			}
-			this.initDB()
-		}
-
-		// if (existsSync(join(__dirname, this.directory)))
-	}
-	create(guild: Guild) {
-		return create(guild)
-	}
-	load(guild: Guild, options: IOptionsLoad) {
-		return load(guild, options.id)
-	}
-	initDB() {
-		mongoose.connect(this.database!.url, { useNewUrlParser: true, useUnifiedTopology: true });
-	}
+  client: Client;
+  database: IObject | undefined;
+  constructor(client: Client, options: IOptions) {
+    this.client = client;
+    if (options?.database) {
+      this.database = {
+        url: options?.database,
+      };
+      this.initDB();
+    }
+  }
+  create(guild: Guild) {
+    return create(guild);
+  }
+  load(guild: Guild, options: IOptionsLoad) {
+    return load(guild, options.id);
+  }
+  initDB() {
+    mongoose.connect(this.database!.url, {
+      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity  //45000
+      family: 4, // Use IPv4, skip trying IPv6
+    });
+  }
 }
