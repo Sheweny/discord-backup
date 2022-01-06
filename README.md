@@ -45,7 +45,7 @@ Create a new instance of `DiscordBackup` with the client as a parameter and the 
 
 ```js
 const backup = new DiscordBackup(client, {
-  database: "mongodb://localhost:27017/discord-backup",
+  database: url : {"mongodb://localhost:27017/discord-backup"},
 });
 ```
 
@@ -79,7 +79,7 @@ const { Client, Intents } = require("discord.js");
 const { DiscordBackup } = require("@sheweny/backup");
 const client = new Client({ intents: ["GUILDS", "GUILD_MESSAGES"] });
 const backup = new DiscordBackup(client, {
-  database: "mongodb://localhost:27017/discord-backup",
+  database: {url : "mongodb://localhost:27017/discord-backup"},
 });
 client.on("messageCreate", async (msg) => {
   const args = msg.content.split(" ");
