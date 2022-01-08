@@ -46,7 +46,7 @@ Create a new instance of `DiscordBackup` with the client as a parameter and the 
 ```js
 const backup = new DiscordBackup(client, {
   database: { 
-    url : {"mongodb://localhost:27017/discord-backup"} 
+    url : "mongodb://localhost:27017/discord-backup"
   },
 });
 ```
