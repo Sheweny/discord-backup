@@ -1,119 +1,130 @@
-import { Guild, SnowflakeUtil } from "discord.js";
-import { GuildDB } from "../models/index";
-import { Types } from "mongoose";
+import { Guild, GuildMember, OverwriteType } from 'discord.js';
+import { ChannelType, SnowflakeUtil } from 'discord.js';
+import { Types } from 'mongoose';
+import GuildBackup from '../models/guild';
 
-export async function create(guild: Guild) {
-  const bans = await fetchBans(guild);
-  const categories = await fetchCategories(guild);
-  const channels = await fetchChannels(guild);
-  const emojis = await fetchEmojis(guild);
-  const roles = await fetchRoles(guild);
+export async function create(guild: Guild, backupOwner: GuildMember) {
+	const bans = await fetchBans(guild);
+	const categories = await fetchCategories(guild);
+	const channels = await fetchChannels(guild);
+	const emojis = await fetchEmojis(guild);
+	const roles = await fetchRoles(guild);
 
-  const backupId = SnowflakeUtil.generate(Date.now());
-  const merged = Object.assign({
-    _id: new Types.ObjectId(),
-    backupID: backupId,
-    gName: guild.name,
-    gID: guild.id,
-    gDescription: guild.description,
-    gIcon: guild.iconURL(),
-    gBans: bans,
-    gCategories: categories,
-    gChannels: channels,
-    gEmojis: emojis,
-    gRoles: roles,
-  });
-  const createGuild = new GuildDB(merged);
-  await createGuild.save();
-  return backupId;
+	const backupId = SnowflakeUtil.generate({ timestamp: Date.now() });
+	const merged = Object.assign({
+		_id: new Types.ObjectId(),
+		backupId: backupId,
+		createdAt: Date.now(),
+		backupOwner: backupOwner.id,
+		guildId: guild.id,
+		guildName: guild.name,
+		guildDescription: guild.description,
+		guildIcon: guild.iconURL(),
+		guildBans: bans,
+		guildCategories: categories,
+		guildChannels: channels,
+		guildEmojis: emojis,
+		guildRoles: roles,
+	});
+	const backupModel = new GuildBackup(merged);
+	await backupModel.save();
+	return backupId;
 }
 
 async function fetchBans(guild: Guild) {
-  const bans: string[] = [];
-  const bansFetch = await guild.bans.fetch();
-  bansFetch.each((b: any) => {
-    bans.push(b.user.id);
-  });
-  return bans;
+	const bansFetch = await guild.bans.fetch();
+	const bans: string[] = bansFetch.map(b => b.user.id);
+	return bans;
 }
 
 async function fetchCategories(guild: Guild) {
-  const categories: any[] = [];
-  const channelsFetch = await guild.channels.fetch();
-  const categoriesFilter = channelsFetch.filter(
-    (c: any) => c.type === "GUILD_CATEGORY"
-  );
-  for (const [_, cat] of categoriesFilter) {
-    const permissions: any[] = [];
-    for (const p of cat.permissionOverwrites.cache.values()) {
-      permissions.push({
-        id: p.id,
-        type: p.type,
-        deny: p.deny.bitfield.toString(),
-        allow: p.allow.bitfield.toString(),
-      });
-    }
-    categories.push({
-      name: cat.name,
-      rawPosition: cat.rawPosition,
-      permissionOverwrites: permissions,
-    });
-  }
-  return categories;
+	const channelsFetch = await guild.channels.fetch();
+	const categoriesFilter = channelsFetch.filter(
+		c => c.type === ChannelType.GuildCategory,
+	);
+
+	const categories = categoriesFilter.map(cat => ({
+		name: cat.name,
+		rawPosition: cat.rawPosition,
+		permissionOverwrites: cat.permissionOverwrites.cache.map(p => {
+			({
+				id: p.id,
+				type: p.type,
+				deny: p.deny.bitfield.toString(),
+				allow: p.allow.bitfield.toString(),
+			});
+		}),
+	}));
+	return categories;
 }
 
 async function fetchChannels(guild: Guild) {
-  const channels: any[] = [];
-  const channelsFetch = await guild.channels.fetch();
-  const channelsFilter: any = channelsFetch.filter(
-    (c: any) => c.type !== "GUILD_CATEGORY"
-  );
-  for (const [_, cha] of channelsFilter) {
-    const permissions: any[] = [];
-    for (const p of cha.permissionOverwrites.cache.values()) {
-      permissions.push({
-        id: p.id,
-        type: p.type,
-        deny: p.deny.bitfield.toString(),
-        allow: p.allow.bitfield.toString(),
-      });
-    }
-    channels.push({
-      name: cha.name,
-      type: cha.type,
-      rawPosition: cha.rawPosition,
-      parent: cha.parent?.name,
-      permissionOverwrites: permissions,
-      topic: cha.topic || "",
-      nsfw: cha.nsfw || false,
-    });
-  }
-  return channels;
+	const channelsFetch = await guild.channels.fetch();
+	const channelsFilter = channelsFetch.filter(
+		c => c.type !== ChannelType.GuildCategory,
+	);
+
+	const channels = channelsFilter
+		.filter(channel => {
+			if (!channel.deletable) return false;
+			return true;
+		})
+		.map(channel => {
+			return {
+				name: channel.name,
+				type: channel.type,
+				rawPosition: channel.rawPosition,
+				parent: channel.parent?.name,
+				topic:
+					channel.type === ChannelType.GuildText
+						? channel.topic
+						: undefined,
+				nsfw:
+					channel.type === ChannelType.GuildText
+						? channel.nsfw
+						: undefined,
+				slowMode:
+					channel.type === ChannelType.GuildText
+						? channel.rateLimitPerUser
+						: undefined,
+				slots:
+					channel.type === ChannelType.GuildVoice ||
+					channel.type === ChannelType.GuildStageVoice
+						? channel.userLimit
+						: undefined,
+				permissionOverwrites: channel.permissionOverwrites.cache.map(
+					p => ({
+						id: p.id,
+						type: p.type,
+						deny: p.deny.bitfield.toString(),
+						allow: p.allow.bitfield.toString(),
+					}),
+				),
+			};
+		});
+	return channels;
 }
 
 async function fetchEmojis(guild: Guild) {
-  const emojisFetch = await guild.emojis.fetch();
-  const emojis: any[] = [];
-  for (const [_, emot] of emojisFetch) {
-    emojis.push({
-      name: emot.name,
-      animated: emot.animated,
-      id: emot.id,
-    });
-  }
-  return emojis;
+	const emojisFetch = await guild.emojis.fetch();
+	const emojis = emojisFetch.map(emoji => ({
+		name: emoji.name,
+		animated: emoji.animated,
+		id: emoji.id,
+	}));
+	return emojis;
 }
 
 async function fetchRoles(guild: Guild) {
-  const roles: any[] = [];
-  const rolesFetch = await guild.roles.fetch();
-  for (const [_, r] of rolesFetch) {
-    roles.push({
-      name: r.name,
-      color: r.color,
-      rawPosition: r.rawPosition,
-      permissions: r.permissions.bitfield.toString(),
-    });
-  }
-  return roles;
+	const rolesFetch = await guild.roles.fetch();
+	const roles = rolesFetch
+		.filter(role => role.id !== guild.id)
+		.filter(role => role.tags?.botId === undefined)
+		.map(role => ({
+			name: role.name,
+			color: role.color,
+			rawPosition: role.rawPosition,
+			permissions: role.permissions.bitfield.toString(),
+		}));
+	return roles;
 }

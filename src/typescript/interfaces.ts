@@ -1,30 +1,20 @@
-export interface IOptions {
-	directory?: string;
-	database?: {
-		url: string;
-	};
+import type { Client, Guild, GuildMember } from "discord.js";
+
+export interface IDatabase {
+    url: string;
 }
 
-export interface IObject {
-	[index: string]: any;
+export interface BackupOptions {
+    client: Client;
+    database: IDatabase;
 }
 
-export interface IOptionsLoad {
-	id: string;
-	force: boolean;
+export interface CreateOptions {
+    guild: Guild;
+    backupOwner: GuildMember;
 }
 
-export interface IBackup {
-	_id: string;
-	backupID: string;
-	backupOwner: string;
-	gID: string;
-	gName: string;
-	gDescription: string;
-	gIcon: string;
-	gBans: Array<any>;
-	gCategories: Array<any>;
-	gChannels: Array<any>;
-	gEmojis: Array<any>;
-	gRoles: Array<any>;
+export interface LoadOptions {
+    guild: Guild;
+    backupId: string;
 }
