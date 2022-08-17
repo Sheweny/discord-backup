@@ -1,0 +1,10 @@
+Role: save & load [OK]
+Emojis: save & load [OK]
+Bans: save & load [OK]
+
+Categories: save & load [OK]
+    -> Not loading permissions
+Channel:
+    -> Permissions à vérifier
+
+Permissions: Save le nom du role et pas l'id

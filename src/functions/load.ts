@@ -1,116 +1,143 @@
-import type { Guild } from "discord.js";
-import type { IBackup, IObject } from "../typescript/interfaces";
-import { GuildDB } from "../models/index";
-import { wait } from "../util/wait";
+import {
+	CategoryChannel,
+	Guild,
+	OverwriteResolvable,
+	OverwriteType,
+} from 'discord.js';
+import type { IGuildBackup } from '../models/guild';
+import GuildBackup from '../models/guild';
+import { ChannelType } from 'discord.js';
+import { wait } from '../util/wait';
 
 export async function load(guild: Guild, backupId: string) {
-  const guildDB = await GuildDB.findOne({ backupID: backupId });
+	const guildDB = await GuildBackup.findOne({ backupID: backupId });
 
-  if (!guildDB) throw new Error("Could not find guild backup " + backupId);
-  await prepar(guild);
-  await loadRoles(guild, guildDB);
-  await loadCategories(guild, guildDB);
-  await loadChannels(guild, guildDB);
-  await loadEmojis(guild, guildDB);
-  await loadBans(guild, guildDB);
-  return true;
+	if (!guildDB) throw new Error('Could not find guild backup ' + backupId);
+	await prepar(guild);
+	await loadRoles(guild, guildDB);
+	await loadCategories(guild, guildDB);
+	await loadChannels(guild, guildDB);
+	await loadEmojis(guild, guildDB);
+	await loadBans(guild, guildDB);
+	return true;
 }
 
 async function prepar(guild: Guild): Promise<void> {
-  // Fetch
-  const g = await guild.fetch();
-  // Delete all
+	// Fetch
+	const g = await guild.fetch();
+	// Delete all
 
-  //Roles
-  for (const role of g.roles.cache.values()) {
-    try {
-      if (role.id !== role.guild.id && role.editable) {
-        if (g.me!.roles.highest.comparePositionTo(role) <= 0) continue;
-        await role.delete();
-        await wait(100);
-      }
-    } catch (e) {}
-  }
-  // Channels
-  for (const channel of g.channels.cache.values()) {
-    try {
-      if (!channel.isThread() && channel.deletable) {
-        await channel.delete();
-        await wait(100);
-      }
-    } catch (e) {}
-  }
-  // Emojis
-  for (const emoji of g.emojis.cache.values()) {
-    try {
-      if (emoji.deletable) {
-        await emoji.delete();
-        await wait(100);
-      }
-    } catch (e) {}
-  }
+	//Roles
+	for (const role of g.roles.cache.values()) {
+		try {
+			if (role.id !== role.guild.id && role.editable) {
+				if (g.members.me!.roles.highest.comparePositionTo(role) <= 0)
+					continue;
+				await role.delete();
+				await wait(100);
+			}
+		} catch (e) {}
+	}
+	// Channels
+	for (const channel of g.channels.cache.values()) {
+		try {
+			if (!channel.isThread() && channel.deletable) {
+				await channel.delete();
+				await wait(100);
+			}
+		} catch (e) {}
+	}
+	// Emojis
+	for (const emoji of g.emojis.cache.values()) {
+		try {
+			if (emoji.deletable) {
+				await emoji.delete();
+				await wait(100);
+			}
+		} catch (e) {}
+	}
 }
 
-async function loadCategories(guild: Guild, backup: IBackup) {
-  for (const cat of backup.gCategories) {
-    await wait(100);
-    cat.permissionOverwrites.forEach((p: IObject) => {
-      p.allow = BigInt(p.allow);
-      p.deny = BigInt(p.deny);
-    });
+async function loadCategories(guild: Guild, backup: IGuildBackup) {
+	for (const category of backup.guildCategories) {
+		await wait(100);
+		const permissionOverwrites: OverwriteResolvable[] =
+			category.permissionOverwrites.map(perm => ({
+				id: perm.id,
+				type: perm.type,
+				allow: BigInt(perm.allow),
+				deny: BigInt(perm.deny),
+			}));
 
-    await guild.channels.create(cat.name, {
-      type: "GUILD_CATEGORY",
-      position: cat.rawPosition,
-      permissionOverwrites: cat.permissionOverwrites,
-    });
-  }
-}
-async function loadChannels(guild: Guild, backup: IBackup) {
-  for (const ch of backup.gChannels) {
-    const parent: any = guild.channels.cache
-      .filter((c: any) => c.type === "GUILD_CATEGORY" && c.name === ch.parent)
-      ?.first();
-    await wait(100);
-    ch.permissionOverwrites.forEach((p: IObject) => {
-      p.allow = BigInt(p.allow);
-      p.deny = BigInt(p.deny);
-    });
-    await guild.channels.create(ch.name, {
-      type: ch.type,
-      topic: ch.topic,
-      position: ch.rawPosition,
-      permissionOverwrites: ch.permissionOverwrites,
-      parent: parent,
-    });
-  }
+		await guild.channels.create({
+			type: ChannelType.GuildCategory,
+			name: category.name,
+			position: category.rawPosition,
+			permissionOverwrites,
+		});
+	}
+	return true;
 }
 
-async function loadRoles(guild: Guild, backup: IBackup) {
-  for (const r of backup.gRoles) {
-    await wait(100);
-    await guild.roles.create({
-      name: r.name,
-      color: r.color,
-      position: r.position,
-      permissions: BigInt(r.permissions),
-    });
-  }
+async function loadChannels(guild: Guild, backup: IGuildBackup) {
+	for (const channel of backup.guildChannels) {
+		const parent = guild.channels.cache.find(
+			chan =>
+				chan.type === ChannelType.GuildCategory &&
+				chan.name === channel.parent,
+		);
+		await wait(100);
+
+		const permissionOverwrites: OverwriteResolvable[] =
+			channel.permissionOverwrites.map(perm => ({
+				id: perm.id,
+				type: perm.type,
+				allow: BigInt(perm.allow),
+				deny: BigInt(perm.deny),
+			}));
+
+		await guild.channels.create({
+			type: channel.type,
+			name: channel.name,
+			position: channel.rawPosition,
+			parent: parent?.id,
+			userLimit: channel.slots,
+			topic: channel.topic,
+			rateLimitPerUser: channel.slowMode,
+			nsfw: channel.nsfw,
+			permissionOverwrites,
+		});
+	}
+	return true;
 }
 
-async function loadEmojis(guild: Guild, backup: IBackup) {
-  for (const e of backup.gEmojis) {
-    await wait(100);
-    await guild.emojis.create(
-      `https://cdn.discordapp.com/emojis/${e.id}.${e.animated ? "gif" : "png"}`,
-      e.name
-    );
-  }
+async function loadRoles(guild: Guild, backup: IGuildBackup) {
+	for (const role of backup.guildRoles) {
+		await wait(100);
+		await guild.roles.create({
+			name: role.name,
+			color: role.color,
+			position: role.rawPosition,
+			permissions: BigInt(role.permissions),
+		});
+	}
 }
 
-async function loadBans(guild: Guild, backup: IBackup) {
-  for (const b of backup.gBans) {
-    await wait(100);
-    await guild.bans.create(b, { reason: "Backup" });
-  }
+async function loadEmojis(guild: Guild, backup: IGuildBackup) {
+	backup.guildEmojis.forEach(async emoji => {
+		await wait(100);
+		await guild.emojis.create({
+			name: emoji.name,
+			attachment: `https://cdn.discordapp.com/emojis/${emoji.id}.${
+				emoji.animated ? 'gif' : 'png'
+			}`,
+		});
+	});
+}
+
+async function loadBans(guild: Guild, backup: IGuildBackup) {
+	backup.guildBans.forEach(async ban => {
+		await wait(100);
+		await guild.bans.create(ban, { reason: 'Backup restored' });
+	});
 }
