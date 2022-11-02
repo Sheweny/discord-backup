@@ -38,7 +38,7 @@ const { DiscordBackup } = require("@sheweny/backup");
 With module syntax :
 
 ```js
-import { DiscordBackup } = from "@sheweny/backup";
+import { DiscordBackup } from "@sheweny/backup";
 ```
 
 Create a new instance of `DiscordBackup` with the client as a parameter and the database in options :
@@ -101,3 +101,4 @@ client.login("<discord bot token>");
 ## Authors
 
 - [Smaug6739](https://github.com/Smaug6739)
+- [Tech Genius](https://github.com/TechGenius7777)
